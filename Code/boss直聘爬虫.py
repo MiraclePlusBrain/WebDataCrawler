@@ -1,4 +1,6 @@
+from email import header
 from selenium import webdriver
+from tkinter.filedialog import askopenfilename
 import pandas as pd
 import numpy as np
 import time
@@ -8,8 +10,34 @@ from selenium.webdriver.firefox.options import Options
 from selenium.common.exceptions import NoSuchElementException,WebDriverException,InvalidSessionIdException,TimeoutException
 import requests
 import csv
+import os
+
+# 当前运行的代码文件所在文件夹路径
+cur_path = os.path.dirname(__file__)
+
+def check_input_file(file_path):
+    '''
+    检查输入的源文件是否有效，标准: 表格形式文件（目前仅支持xlsx文件）
+
+    :param file_path: str
+    :return: DataFrame
+    '''
+    # 支持的文件类型tuple
+    support_file_types = ('xlsx',)
+
+    # 判断文件格式
+    if not file_path.endswith(support_file_types):  # 判断文件格式是否为xlsx
+        print('输入的文件必须为xlsx文件!')
+        return None  # 如果文件格式不为xlsx文件，返回None
+
+    # 获取excel文件的内容
+    df_raw_data = pd.read_excel(file_path, header=None)
+    return df_raw_data
+
+# 获取源文件的路径
+file_path = askopenfilename(title='输入招聘关键词的源数据')
 #导入外部数据
-base1=pd.read_excel('MPB_往期校友_招聘需求提取关键词_77#.xlsx',header=None)
+base1=pd.read_excel(file_path,header=None)
 #设置存储结果的frame
 employ1=pd.DataFrame()
 
@@ -53,10 +81,9 @@ def buildbrowser(url):
         browser.quit()
         webelem,browser=buildbrowser(url)
     else:pass
-    return(webelem,browser)
+    return webelem,browser
 
 for p in range(base1.shape[0]):
-
     #下面开始正式爬取,构造url
     url="https://www.zhipin.com/c101010100/s_301/?query="+base1.iloc[p,0]+"&ka=sel-scale-301"
     index=True
